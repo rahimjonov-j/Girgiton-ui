@@ -46,7 +46,8 @@ export async function speechToText(audioBase64, mimeType) {
     const status = err?.response?.status;
     const errorData = err?.response?.data;
     logger.error({ status, errorData }, 'UzbekVoice STT failed');
-    throw new Error(`UzbekVoice STT failed${status ? ` (HTTP ${status})` : ''}`);
+    const errText = typeof errorData === 'object' ? JSON.stringify(errorData) : errorData;
+    throw new Error(`UzbekVoice STT failed${status ? ` (HTTP ${status})` : ''}: ${errText || 'No details'}`);
   }
 
   const transcript =
