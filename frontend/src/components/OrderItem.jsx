@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { Pencil, Check, Trash2 } from 'lucide-react';
 import { useOrderStore } from '../store/useOrderStore.js';
 import QuantityCounter from './QuantityCounter.jsx';
 import { toast } from 'sonner';
 
-export default function OrderItem({ item }) {
+const OrderItem = memo(function OrderItem({ item }) {
   const { updateItemName, removeItem } = useOrderStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(item.nomi);
@@ -17,7 +17,6 @@ export default function OrderItem({ item }) {
   const handleSave = () => {
     if (editValue.trim() !== '') {
       updateItemName(item.id || item.nomi, editValue.trim());
-      if (editValue.trim() !== item.nomi) toast.success("O'zgartirildi");
     } else {
       setEditValue(item.nomi);
     }
@@ -65,7 +64,7 @@ export default function OrderItem({ item }) {
               <Check className="w-5 h-5" />
             </button>
           ) : (
-            <button onClick={() => setIsEditing(true)} className="p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 rounded-full transition-all active:scale-90 hidden sm:flex">
+            <button onClick={() => setIsEditing(true)} className="p-2 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 rounded-full transition-all active:scale-90">
               <Pencil className="w-4 h-4" />
             </button>
           )}
@@ -76,4 +75,6 @@ export default function OrderItem({ item }) {
       </div>
     </div>
   );
-}
+});
+
+export default OrderItem;

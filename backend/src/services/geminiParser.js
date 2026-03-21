@@ -74,7 +74,7 @@ async function callGemini(text, apiKey, model, extraInstruction = '', options = 
       const { data } = await axios.post(
         `${GEMINI_ENDPOINT}/${model}:generateContent?key=${apiKey}`,
         payload,
-        { timeout: 30000 }
+        { timeout: 60000 }
       );
       return data;
     } catch (err) {
@@ -84,6 +84,7 @@ async function callGemini(text, apiKey, model, extraInstruction = '', options = 
       if (status === 400 || status === 403 || status === 404) {
         const configError = new Error('GEMINI_INVALID_REQUEST');
         configError.statusCode = status;
+        configError.details = data?.error?.message || 'Noma\'lum xato';
         throw configError;
       }
       throw err;

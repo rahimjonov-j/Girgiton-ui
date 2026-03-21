@@ -85,7 +85,7 @@ router.post('/', async (req, res) => {
       return res.status(422).json({ message: "Buyurtma JSON noto'g'ri formatda" });
     }
     if (error?.message === 'GEMINI_INVALID_REQUEST') {
-      return res.status(400).json({ message: "Gemini sozlamalari noto'g'ri. Model yoki API kalitini tekshiring." });
+      return res.status(400).json({ message: `Gemini xatosi: ${error.details || 'Model yoki API kalitida masala.'}` });
     }
     logger.error({ error: error?.message ?? error }, 'Voice order error');
     if (error?.issues) {

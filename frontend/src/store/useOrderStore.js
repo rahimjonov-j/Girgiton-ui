@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { MENU_ITEMS } from '../data/menuData.js';
 
 export const useOrderStore = create((set) => ({
   state: 'idle',
@@ -52,10 +53,37 @@ export const useOrderStore = create((set) => ({
 
   updateItemName: (id, name) => set((state) => {
     if (!state.parsedOrder) return state;
-    const newItems = state.parsedOrder.mahsulotlar.map(item => 
-      item.id === id || item.nomi === id ? { ...item, nomi: name } : item
-    );
-    return { parsedOrder: { ...state.parsedOrder, mahsulotlar: newItems } };
+    
+    const foundItem = MENU_ITEMS.find(i => i.name.toLowerCase() === name.toLowerCase().trim());
+
+    const newItems = state.parsedOrder.mahsulotlar.map(item => {
+      if (item.id === id || item.nomi === id) {
+        if (foundItem) {
+          const newUnitPrice = foundItem.price;
+          return { 
+            ...item, 
+            nomi: foundItem.name, 
+            unit_price: newUnitPrice, 
+            jami_narxi: newUnitPrice * item.miqdor 
+          };
+        }
+        return { ...item, nomi: name };
+      }
+      return item;
+    });
+
+    const newTotal = newItems.reduce((acc, curr) => acc + curr.jami_narxi, 0);
+
+    return { 
+      parsedOrder: { 
+        ...state.parsedOrder, 
+        mahsulotlar: newItems,
+        hisob_kitob: {
+          ...state.parsedOrder.hisob_kitob,
+          umumiy_summa: newTotal
+        }
+      } 
+    };
   }),
 
   updateItemQty: (id, delta) => set((state) => {

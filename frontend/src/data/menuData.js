@@ -1,10 +1,12 @@
 export const CATEGORIES = [
-  { id: 'salat', label: 'Salatlar', icon: '🥗' },
   { id: 'asosiy', label: 'Asosiy taom', icon: '🍽️' },
-  { id: 'shorva', label: "Sho'rva", icon: '🍲' },
-  { id: 'kabob', label: 'Kabob', icon: '🍢' },
+  { id: 'shorva', label: "Sho'rvalar", icon: '🍲' },
+  { id: 'fast_food', label: 'Fast-food', icon: '🍔' },
+  { id: 'grill', label: 'Grill', icon: '🍗' },
+  { id: 'milliy', label: 'Milliy taom', icon: '🥘' },
+  { id: 'salat', label: 'Salatlar', icon: '🥗' },
   { id: 'ichimlik', label: 'Ichimliklar', icon: '🥤' },
-  { id: 'desert', label: 'Desert', icon: '🍰' },
+  { id: 'desert', label: 'Shirinliklar', icon: '🍰' },
 ];
 
 export const MENU_ITEMS = [
