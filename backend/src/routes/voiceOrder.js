@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { z } from 'zod';
 import { speechToText } from '../services/speechToText.js';
 import { parseOrderWithGemini } from '../services/geminiParser.js';
@@ -94,10 +94,7 @@ router.post('/', async (req, res) => {
       }
       return res.status(422).json({ message: "Buyurtma JSON noto'g'ri formatda" });
     }
-    if (process.env.NODE_ENV !== 'production') {
-      return res.status(500).json({ message: error?.message ?? 'Server xatoligi' });
-    }
-    return res.status(500).json({ message: 'Server xatoligi' });
+    return res.status(500).json({ message: error?.message || 'Server xatoligi' });
   }
 });
 
