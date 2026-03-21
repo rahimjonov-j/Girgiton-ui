@@ -1,6 +1,5 @@
 import React from 'react';
 import { Mic } from 'lucide-react';
-import WaveformVisualizer from './WaveformVisualizer.jsx';
 import { useOrderStore } from '../store/useOrderStore.js';
 
 export default function MicButton({ onStart, onStop }) {
@@ -8,8 +7,6 @@ export default function MicButton({ onStart, onStop }) {
   
   return (
     <div className="relative flex flex-col items-center">
-      <WaveformVisualizer isRecording={state === 'recording'} />
-
       <button
         onPointerDown={onStart}
         onPointerUp={onStop}
@@ -19,7 +16,7 @@ export default function MicButton({ onStart, onStop }) {
         className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center transition-all duration-300 focus:outline-none select-none touch-none relative group ${
           state === 'recording' 
             ? 'bg-red-500 scale-110 shadow-[0_0_50px_rgba(239,68,68,0.6)] text-white' 
-            : 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-300 shadow-[0_10px_30px_rgba(0,0,0,0.1)]'
+            : 'bg-green-500 text-white hover:bg-green-600 shadow-[0_10px_30px_rgba(34,197,94,0.3)]'
         }`}
       >
         {state === 'recording' && (

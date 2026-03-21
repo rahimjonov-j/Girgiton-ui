@@ -10,6 +10,10 @@ If the text is not related to restaurant orders return:
 
 "Mavzudan chiqildi"
 
+CRITICAL: You must extract ALL food and drink items mentioned in the text. 
+The "mahsulotlar" array MUST contain a separate object for EVERY distinct item ordered.
+Do not combine different meals into one object, and do not ignore any items.
+
 Correct common typos.
 
 Understand variations such as:
@@ -22,7 +26,7 @@ Understand variations such as:
 Extract:
 
 * table number
-* food items
+* food items (ALL of them)
 * quantities
 * add-ons
 * descriptions

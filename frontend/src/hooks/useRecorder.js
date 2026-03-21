@@ -11,9 +11,10 @@ export function useRecorder() {
     setError(null);
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const preferredTypes = [
-      'audio/ogg;codecs=opus',
       'audio/webm;codecs=opus',
-      'audio/webm'
+      'audio/webm',
+      'audio/ogg;codecs=opus',
+      'audio/mp4'
     ];
     const mimeType = preferredTypes.find((type) => MediaRecorder.isTypeSupported(type)) || '';
 

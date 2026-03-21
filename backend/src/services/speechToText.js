@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 import FormData from 'form-data';
 import { logger } from '../utils/logger.js';
 
@@ -9,6 +9,8 @@ function getExtension(mimeType) {
   if (mimeType.includes('ogg')) return 'ogg';
   if (mimeType.includes('wav')) return 'wav';
   if (mimeType.includes('mpeg')) return 'mp3';
+  if (mimeType.includes('mp4') || mimeType.includes('m4a')) return 'mp4';
+  if (mimeType.includes('aac')) return 'aac';
   return 'webm';
 }
 
