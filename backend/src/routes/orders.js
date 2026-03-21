@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { z } from 'zod';
 import { supabase } from '../services/supabase.js';
 import { logger } from '../utils/logger.js';
@@ -13,6 +13,47 @@ router.get('/', async (_req, res) => {
   }
   return res.json({ orders: data ?? [] });
 });
+
+const generateOrderId = () => `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+
+router.post('/', async (req, res) => {
+  try {
+    const { mahsulotlar, stol, mijoz, hisob_kitob, taxminiy_tolov_turi } = req.body;
+    if (!mahsulotlar || !Array.isArray(mahsulotlar) || mahsulotlar.length === 0) {
+      return res.status(400).json({ message: 'Mahsulotlar ro\'yxati bo\'sh' });
+    }
+
+    const payload = {
+      buyurtma_id: generateOrderId(),
+      stol: stol || 1,
+      mijoz: mijoz || 'Noma\'lum',
+      ofitsiant_id: 1,
+      vaqt: new Date().toISOString(),
+      mahsulotlar,
+      hisob_kitob: hisob_kitob || {
+        sub_total: mahsulotlar.reduce((a, i) => a + (i.jami_narxi || 0), 0),
+        xizmat_haqi_foiz: 15,
+        xizmat_haqi_summa: 0,
+        umumiy_summa: mahsulotlar.reduce((a, i) => a + (i.jami_narxi || 0), 0)
+      },
+      taxminiy_tolov_turi: taxminiy_tolov_turi || 'naqd',
+      status: 'NEW'
+    };
+
+    const { data, error } = await supabase.from('orders').insert(payload).select('*').single();
+    if (error || !data) {
+      logger.error({ error }, 'Order insert failed');
+      return res.status(500).json({ message: 'Buyurtma saqlanmadi' });
+    }
+
+    logger.info({ orderId: data.id }, 'Manual order saved');
+    return res.status(201).json({ order: data });
+  } catch (err) {
+    logger.error({ error: err?.message }, 'POST /orders error');
+    return res.status(500).json({ message: err?.message || 'Server xatoligi' });
+  }
+});
+
 
 const statusSchema = z.object({
   status: z.enum(['NEW', 'COOKING', 'READY', 'COMPLETED'])
