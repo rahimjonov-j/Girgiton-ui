@@ -171,7 +171,7 @@ export default function VoiceOrderPage() {
           )}
         </main>
 
-        <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-white via-white to-transparent pb-8 pt-24 px-6 flex flex-col items-center gap-4 z-30 pointer-events-none">
+        <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-white via-white to-transparent pb-[70px] pt-24 px-6 flex flex-col items-center gap-4 z-30 pointer-events-none">
           <div className="w-full flex justify-center pointer-events-auto relative z-40">
             {hasItems && state !== 'recording' && state !== 'processing' ? (
                <button 
