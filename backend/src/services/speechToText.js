@@ -38,7 +38,9 @@ export async function speechToText(audioBase64, mimeType) {
   }
 
   const buffer = Buffer.from(audioBase64, 'base64');
-  const { ext, contentType } = resolveAudioFormat(mimeType);
+  // Strip codec params (e.g. 'audio/webm;codecs=opus' → 'audio/webm')
+  const cleanMimeType = (mimeType || '').split(';')[0].trim();
+  const { ext, contentType } = resolveAudioFormat(cleanMimeType);
 
   const form = new FormData();
   form.append('file', buffer, {

@@ -132,9 +132,11 @@ export function useRecorder() {
             : 'audio/webm';
 
         const blob = new Blob(chunksRef.current, { type: actualMime });
+        // Strip codec params so backend/ffmpeg gets a clean container MIME
+        const cleanMime = actualMime.split(';')[0].trim();
         setIsRecording(false);
         mediaRecorderRef.current = null;
-        resolve({ blob, durationMs, mimeType: actualMime });
+        resolve({ blob, durationMs, mimeType: cleanMime });
       };
 
       if (recorder.state !== 'inactive') {
