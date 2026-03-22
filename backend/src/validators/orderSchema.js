@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 
 const asNumber = (value) => {
   if (typeof value === 'number') return value;
@@ -16,19 +16,21 @@ export const orderItemAddonSchema = z.object({
 });
 
 const normalizeStatus = (value) => {
-  if (typeof value !== 'string') return value;
+  if (value == null) return 'yangi';
+  if (typeof value !== 'string') return 'yangi';
   const cleaned = value.trim().toLowerCase();
-  if (!cleaned) return value;
+  if (!cleaned) return 'yangi';
   if (['pishirilyapti', 'pishirilmoqda', 'tayyorlanmoqda', 'cooking', 'in_progress'].includes(cleaned)) {
     return 'pishirilmoqda';
   }
   if (['tayyor', 'ready', 'done', 'tayyor!'].includes(cleaned)) {
     return 'tayyor';
   }
-  if (['yangi', 'new', 'pending'].includes(cleaned)) {
+  if (['yangi', 'new', 'pending', 'mavjud', 'yangi!', 'buyurildi'].includes(cleaned)) {
     return 'yangi';
   }
-  return cleaned;
+  // unknown — default to yangi (never crash)
+  return 'yangi';
 };
 
 export const orderItemSchema = z.object({
@@ -36,10 +38,10 @@ export const orderItemSchema = z.object({
   miqdor: z.preprocess(asNumber, z.number().int().positive()),
   tavsif: z.string().default(''),
   qoshimchalar: z.array(orderItemAddonSchema).default([]),
-  status: z.preprocess(normalizeStatus, z.enum(['pishirilmoqda', 'tayyor', 'yangi']).default('pishirilmoqda')),
-  birlik_narxi: z.preprocess(asNumber, z.number().nonnegative()),
+  status: z.preprocess(normalizeStatus, z.enum(['pishirilmoqda', 'tayyor', 'yangi']).default('yangi')),
+  birlik_narxi: z.preprocess(asNumber, z.number().nonnegative().optional()).optional().default(0),
   jami_narxi: z.preprocess(asNumber, z.number().nonnegative()),
-  ombor_qoldig_i: z.enum(['yetarli', 'kam']).default('yetarli')
+  ombor_qoldig_i: z.enum(['yetarli', 'kam']).optional().default('yetarli')
 });
 
 export const hisobKitobSchema = z.object({
@@ -52,11 +54,11 @@ export const hisobKitobSchema = z.object({
 export const parsedOrderSchema = z.object({
   buyurtma_id: z.string().min(1),
   stol: z.preprocess(asNumber, z.number().int().positive()),
-  mijoz: z.string().min(1),
-  ofitsiant_id: z.preprocess(asNumber, z.number().int().positive()),
-  vaqt: z.string().min(1),
+  mijoz: z.string().default("Noma'lum"),
+  ofitsiant_id: z.preprocess(asNumber, z.number().int().positive().optional()).optional().default(1),
+  vaqt: z.string().default(() => new Date().toISOString()),
   mahsulotlar: z.array(orderItemSchema).min(1),
   hisob_kitob: hisobKitobSchema,
-  taxminiy_tolov_turi: z.string().min(1),
+  taxminiy_tolov_turi: z.string().default('naqd'),
   ogohlantirish: z.string().nullable().optional()
 });
