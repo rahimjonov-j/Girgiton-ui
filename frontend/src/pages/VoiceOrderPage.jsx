@@ -224,8 +224,8 @@ export default function VoiceOrderPage() {
 
           {/* Top fixed Jami section */}
           {hasItems && (
-            <div className="absolute top-0 left-0 right-0 z-40 p-4 bg-white/90 backdrop-blur-md border-b border-zinc-100 shadow-sm">
-              <div className="p-4 bg-green-50 text-green-900 border border-green-100 rounded-2xl flex justify-between items-center">
+            <div className="absolute top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-zinc-100 shadow-sm">
+              <div className="px-5 py-4 bg-green-50 text-green-900 flex justify-between items-center w-full">
                 <span className="font-medium text-sm text-green-700">Jami (qoralama)</span>
                 <span className="font-bold text-xl">{parsedOrder.hisob_kitob?.umumiy_summa?.toLocaleString() || 0} so'm</span>
               </div>
@@ -284,31 +284,33 @@ export default function VoiceOrderPage() {
             )}
           </main>
 
-          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-white via-white to-transparent pb-[70px] pt-24 px-6 flex flex-col items-center gap-4 z-30 pointer-events-none">
-            <div className="w-full flex justify-center pointer-events-auto relative z-40">
-              {hasItems && state !== 'recording' && state !== 'processing' ? (
-                <button
-                  onClick={handleSend}
-                  disabled={state === 'sending'}
-                  className="w-full bg-green-500 hover:bg-green-600 text-white py-4 h-[64px] rounded-full font-bold transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-lg disabled:opacity-70 disabled:scale-100 group"
-                >
-                  {state === 'sending' ? (
-                    <span className="animate-pulse flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Jo'natilmoqda...
-                    </span>
-                  ) : (
-                    <>
-                      <span className="text-lg">Buyurtmani yuborish</span>
-                      <Send className="w-5 h-5 ml-1 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-                    </>
-                  )}
-                </button>
-              ) : (
-                <MicButton onStart={handleStartRecord} onStop={handleStopRecord} />
-              )}
+          {hasItems && state !== 'recording' && state !== 'processing' ? (
+            <div className="absolute bottom-0 left-0 right-0 z-50">
+              <button
+                onClick={handleSend}
+                disabled={state === 'sending'}
+                className="w-full h-[60px] bg-[#1bac4b] text-white flex items-center justify-center text-[17px] font-bold active:brightness-90 transition-all disabled:opacity-70 group"
+              >
+                {state === 'sending' ? (
+                  <span className="animate-pulse flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Jo'natilmoqda...
+                  </span>
+                ) : (
+                  <>
+                    <span>Buyurtmani yuborish</span>
+                    <Send className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  </>
+                )}
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-white via-white to-transparent pb-[70px] pt-24 px-6 flex flex-col items-center gap-4 z-30 pointer-events-none">
+              <div className="w-full flex justify-center pointer-events-auto relative z-40">
+                <MicButton onStart={handleStartRecord} onStop={handleStopRecord} />
+              </div>
+            </div>
+          )}
 
         </div>
       </div>
