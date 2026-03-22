@@ -1157,7 +1157,7 @@ export default function MenuPanel({ isOpen, onClose }) {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="relative h-full w-full sm:w-[500px] shadow-2xl overflow-y-auto flex flex-col bg-white p-3 text-slate-900 *:selection:bg-[#1bac4b33] *:selection:text-[#1bac4b]"
+            className="relative h-full w-full sm:w-[500px] shadow-2xl overflow-y-auto flex flex-col bg-white px-3 pb-3 text-slate-900 *:selection:bg-[#1bac4b33] *:selection:text-[#1bac4b]"
             style={{ touchAction: "manipulation" }} // allow native vertical scroll and horizontal gestures
             onPointerDown={onCatalogPointerDown}
             onPointerMove={onCatalogPointerMove}
@@ -1185,7 +1185,7 @@ export default function MenuPanel({ isOpen, onClose }) {
                 </div>
               </motion.div>
 
-              <div className="!sticky !top-[0px] z-30 mb-4 bg-white py-2 pb-2">
+              <div className="sticky top-0 z-30 mb-3 bg-white pt-3 pb-2 -mx-3 px-3">
                 <div className="relative min-h-[46px]">
                   <div
                     className={`flex items-center gap-2 transition-opacity duration-200 ${
