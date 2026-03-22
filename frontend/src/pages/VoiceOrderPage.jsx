@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Send, AlertCircle } from 'lucide-react';
+import { Send, AlertCircle, Plus } from 'lucide-react';
 import MicButton from '../components/MicButton.jsx';
 import OrderItem from '../components/OrderItem.jsx';
 import MenuPanel from '../components/MenuPanel.jsx';
@@ -216,13 +216,23 @@ export default function VoiceOrderPage() {
       <MenuPanel isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
 
       <div
-        className="min-h-screen bg-white flex justify-center items-start sm:items-center w-full"
+        className="h-dvh bg-white flex justify-center items-start sm:items-center w-full"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="w-full max-w-md bg-white relative min-h-screen flex flex-col overflow-hidden sm:border-x border-zinc-100 shadow-none">
+        <div className="w-full max-w-md bg-white relative h-full flex flex-col overflow-hidden sm:border-x border-zinc-100 shadow-none">
 
-          <main className="flex-1 overflow-y-auto scrollbar-hide px-4 pt-12 pb-[160px] flex flex-col gap-4">
+          {/* Top fixed Jami section */}
+          {hasItems && (
+            <div className="absolute top-0 left-0 right-0 z-40 p-4 bg-white/90 backdrop-blur-md border-b border-zinc-100 shadow-sm">
+              <div className="p-4 bg-green-50 text-green-900 border border-green-100 rounded-2xl flex justify-between items-center">
+                <span className="font-medium text-sm text-green-700">Jami (qoralama)</span>
+                <span className="font-bold text-xl">{parsedOrder.hisob_kitob?.umumiy_summa?.toLocaleString() || 0} so'm</span>
+              </div>
+            </div>
+          )}
+
+          <main className={`flex-1 overflow-y-auto scrollbar-hide px-4 ${hasItems ? 'pt-[110px]' : 'pt-12'} pb-[160px] flex flex-col gap-4`}>
 
             {/* Inline Error Banner */}
             {state === 'error' && error && (
@@ -247,9 +257,15 @@ export default function VoiceOrderPage() {
                 {parsedOrder.mahsulotlar.map((item, idx) => (
                   <OrderItem key={item.id || item.nomi || idx} item={item} />
                 ))}
-                <div className="mt-2 p-5 bg-green-50 text-green-900 border border-green-100 rounded-2xl flex justify-between items-center shadow-sm">
-                  <span className="font-medium text-sm text-green-700">Jami (qoralama)</span>
-                  <span className="font-bold text-xl">{parsedOrder.hisob_kitob?.umumiy_summa?.toLocaleString() || 0} so'm</span>
+                {/* Centered Add Button 15px below orders */}
+                <div className="flex justify-center mt-[15px]">
+                  <button
+                    onClick={() => setMenuOpen(true)}
+                    aria-label="Mahsulot qo'shish"
+                    className="flex justify-center items-center w-[52px] h-[52px] bg-[#1bac4b] text-white rounded-full shadow-[0_4px_14px_rgba(27,172,75,0.3)] hover:bg-emerald-600 active:scale-95 transition-all duration-200"
+                  >
+                    <Plus className="w-7 h-7 stroke-[2.5]" />
+                  </button>
                 </div>
               </div>
             )}

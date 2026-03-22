@@ -245,19 +245,17 @@ function FoodRow({
   onToggleSelect,
 }) {
   const Wrapper = animate ? motion.div : "div";
-  const clickTimeout = useRef(null);
+  const lastTap = useRef(0);
 
   const handleInteraction = (e) => {
     if (!food.mavjudligi) return;
-    if (clickTimeout.current === null) {
-      clickTimeout.current = setTimeout(() => {
-        clickTimeout.current = null;
-        food.onOpenDetails?.(food);
-      }, 250);
-    } else {
-      clearTimeout(clickTimeout.current);
-      clickTimeout.current = null;
+    const now = Date.now();
+    if (now - lastTap.current < 350) {
+      // double tap/click
+      lastTap.current = 0;
       onToggleSelect?.(food);
+    } else {
+      lastTap.current = now;
     }
   };
 
@@ -268,7 +266,7 @@ function FoodRow({
         initial: { opacity: 0, y: 10 },
         whileInView: { opacity: 1, y: 0 },
         viewport: { once: false, amount: 0.2 },
-        transition: { duration: 0.48, ease: "easeOut" }, // duration increased
+        transition: { duration: 0.48, ease: "easeOut" },
       }
     : {};
 
@@ -282,7 +280,7 @@ function FoodRow({
         if (!food.mavjudligi) return;
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          food.onOpenDetails?.(food);
+          onToggleSelect?.(food);
         }
       }}
       className={`relative flex gap-3 px-[13px] py-3.5 overflow-hidden transition-colors ${food.mavjudligi ? "cursor-pointer" : "cursor-default"} ${isSelected ? "bg-[#1bac4b]/10" : "bg-transparent"}`}
@@ -305,7 +303,7 @@ function FoodRow({
         <p className="mt-1 truncate text-xs leading-5 text-slate-500">
           {food.tarkibi}
         </p>
-        <div className="mt-2.5 flex items-center justify-between gap-2">
+        <div className="mt-2.5 flex items-center gap-2">
           {(() => {
             const { hasDiscount, oldPrice, newPrice } = getDiscountInfo(food);
             return (
@@ -326,22 +324,6 @@ function FoodRow({
               </span>
             );
           })()}
-          <button
-            type="button"
-            aria-label="Batafsil ko'rish"
-            onClick={(e) => {
-              e.stopPropagation();
-              food.onOpenDetails?.(food);
-            }}
-            disabled={!food.mavjudligi}
-            className={`flex items-center justify-center rounded-full p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1bac4b] ${
-              food.mavjudligi
-                ? "text-[#1bac4b] hover:text-emerald-600"
-                : "text-slate-300 cursor-not-allowed"
-            }`}
-          >
-            <ChevronRightIcon className="h-4 w-4" />
-          </button>
         </div>
       </div>
 
@@ -392,19 +374,16 @@ const FoodList = memo(function FoodList({
 
 function SearchItem({ food, selectedFoods, onToggleSelect }) {
   const isSelected = selectedFoods?.some((f) => f.id === food.id);
-  const clickTimeout = useRef(null);
+  const lastTap = useRef(0);
 
   const handleInteraction = (e) => {
     if (!food.mavjudligi) return;
-    if (clickTimeout.current === null) {
-      clickTimeout.current = setTimeout(() => {
-        clickTimeout.current = null;
-        food.onOpenDetails?.(food);
-      }, 250);
-    } else {
-      clearTimeout(clickTimeout.current);
-      clickTimeout.current = null;
+    const now = Date.now();
+    if (now - lastTap.current < 350) {
+      lastTap.current = 0;
       onToggleSelect?.(food);
+    } else {
+      lastTap.current = now;
     }
   };
 
@@ -419,15 +398,12 @@ function SearchItem({ food, selectedFoods, onToggleSelect }) {
         </div>
       )}
       {!food.mavjudligi && (
-        <div
-          className="absolute inset-0 flex items-center justify-center pl-2 text-xs font-semibold text-[14px]  
-            "
-        >
+        <div className="absolute inset-0 flex items-center justify-center pl-2 text-xs font-semibold text-[14px]">
           <span className="px-2 py-1.5 rounded-full">Taom qolmagan</span>
         </div>
       )}
       <div
-        className={`w-full grid grid-cols-[minmax(0,1fr)_auto_auto_auto_auto] items-center gap-3 ${
+        className={`w-full grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 ${
           food.mavjudligi ? "" : "blur-[1.5px] opacity-30"
         }`}
       >
@@ -452,23 +428,6 @@ function SearchItem({ food, selectedFoods, onToggleSelect }) {
             </span>
           );
         })()}
-        <span className="text-sm text-slate-300">|</span>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            food.onOpenDetails?.(food);
-          }}
-          disabled={!food.mavjudligi}
-          aria-label="Batafsil ko'rish"
-          className={`flex items-center justify-center rounded-full p-2 ${
-            food.mavjudligi
-              ? "text-[#1bac4b] hover:text-emerald-600"
-              : "text-slate-300 cursor-not-allowed"
-          }`}
-        >
-          <ChevronRightIcon className="h-4 w-4" />
-        </button>
       </div>
     </li>
   );
@@ -1604,10 +1563,10 @@ export default function MenuPanel({ isOpen, onClose }) {
             </AnimatePresence>
 
             {selectedFoods.length > 0 && !detailFood && (
-              <div className="sticky bottom-0 left-0 w-full pt-4 mt-auto z-50 bg-white pb-2 px-1">
+              <div className="fixed bottom-0 left-0 right-0 z-50">
                 <button
                   onClick={finalizeOrder}
-                  className="w-full h-[60px] rounded-[18px] bg-[#1bac4b] text-white flex items-center justify-center text-[17px] font-bold shadow-[0_4px_20px_rgba(27,172,75,0.4)] transition-transform active:scale-[0.98]"
+                  className="w-full h-[60px] bg-[#1bac4b] text-white flex items-center justify-center text-[17px] font-bold active:brightness-90 transition-all"
                 >
                   Buyurtma berish ({selectedFoods.length} ta)
                 </button>
