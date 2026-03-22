@@ -54,7 +54,10 @@ export const useOrderStore = create((set) => ({
   updateItemName: (id, name) => set((state) => {
     if (!state.parsedOrder) return state;
     
-    const foundItem = MENU_ITEMS.find(i => i.name.toLowerCase() === name.toLowerCase().trim());
+    const foundItem = MENU_ITEMS.find(i => {
+      const itemName = (i.nomi || i.name || '');
+      return itemName.toLowerCase() === name.toLowerCase().trim();
+    });
 
     const newItems = state.parsedOrder.mahsulotlar.map(item => {
       if (item.id === id || item.nomi === id) {
@@ -62,9 +65,9 @@ export const useOrderStore = create((set) => ({
           const newUnitPrice = foundItem.price;
           return { 
             ...item, 
-            nomi: foundItem.name, 
+            nomi: foundItem.nomi || foundItem.name, 
             unit_price: newUnitPrice, 
-            jami_narxi: newUnitPrice * item.miqdor 
+            jami_narxi: newUnitPrice * (item.miqdor || 1)
           };
         }
         return { ...item, nomi: name };
@@ -72,7 +75,7 @@ export const useOrderStore = create((set) => ({
       return item;
     });
 
-    const newTotal = newItems.reduce((acc, curr) => acc + curr.jami_narxi, 0);
+    const newTotal = newItems.reduce((acc, curr) => acc + (curr.jami_narxi || 0), 0);
 
     return { 
       parsedOrder: { 
@@ -90,13 +93,13 @@ export const useOrderStore = create((set) => ({
     if (!state.parsedOrder) return state;
     const newItems = state.parsedOrder.mahsulotlar.map(item => {
       if (item.id === id || item.nomi === id) {
-        const unitPrice = item.unit_price || item.jami_narxi / item.miqdor;
+        const unitPrice = item.unit_price || (item.miqdor ? item.jami_narxi / item.miqdor : item.narxi) || 0;
         const newQty = Math.max(1, item.miqdor + delta);
         return { ...item, miqdor: newQty, jami_narxi: newQty * unitPrice, unit_price: unitPrice };
       }
       return item;
     });
-    const newTotal = newItems.reduce((acc, curr) => acc + curr.jami_narxi, 0);
+    const newTotal = newItems.reduce((acc, curr) => acc + (curr.jami_narxi || 0), 0);
     return { 
       parsedOrder: { 
         ...state.parsedOrder, 
@@ -109,7 +112,7 @@ export const useOrderStore = create((set) => ({
   removeItem: (id) => set((state) => {
     if (!state.parsedOrder) return state;
     const newItems = state.parsedOrder.mahsulotlar.filter(item => item.id !== id && item.nomi !== id);
-    const newTotal = newItems.reduce((acc, curr) => acc + curr.jami_narxi, 0);
+    const newTotal = newItems.reduce((acc, curr) => acc + (curr.jami_narxi || 0), 0);
     
     const newOrder = newItems.length === 0 ? null : { 
       ...state.parsedOrder, 

@@ -154,9 +154,21 @@ export default function VoiceOrderPage() {
 
     try {
       if (isLocalOrder) {
+        // Sanitize items: keep only backend-expected fields
+        const cleanItems = parsedOrder.mahsulotlar.map(item => ({
+          id: item.id,
+          nomi: item.nomi,
+          miqdor: item.miqdor || 1,
+          jami_narxi: item.jami_narxi || 0,
+          unit_price: item.unit_price || item.narxi || 0,
+          qoshimchalar: item.qoshimchalar || [],
+          tavsif: item.tavsif || '',
+          status: 'yangi',
+        }));
+
         // Menu order — insert directly to DB via POST /orders
         await api.post('/orders', {
-          mahsulotlar: parsedOrder.mahsulotlar,
+          mahsulotlar: cleanItems,
           stol: parsedOrder.stol || 1,
           mijoz: parsedOrder.mijoz || 'Noma\'lum',
           hisob_kitob: parsedOrder.hisob_kitob,

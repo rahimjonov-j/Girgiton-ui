@@ -12,10 +12,13 @@
   "dependencies": {
     "@tanstack/react-query": "latest",
     "axios": "latest",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
     "lucide-react": "latest",
     "react": "latest",
     "react-dom": "latest",
     "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
     "zustand": "latest"
   },
   "devDependencies": {
