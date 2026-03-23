@@ -153,7 +153,7 @@ function releasePointerCaptureSafely(target, pointerId) {
 }
 
 function isSwipePointer(event) {
-  return event.pointerType === "touch" || event.pointerType === "pen";
+  return event.pointerType === "touch" || event.pointerType === "pen" || (event.pointerType === "mouse" && event.buttons === 1);
 }
 
 function clampIndex(index, total) {
@@ -1117,7 +1117,7 @@ export default function MenuPanel({ isOpen, onClose }) {
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="relative h-full w-full sm:w-[500px] shadow-2xl overflow-y-auto flex flex-col bg-white px-3 pb-3 text-slate-900 *:selection:bg-[#1bac4b33] *:selection:text-[#1bac4b]"
-            style={{ touchAction: "manipulation" }} // allow native vertical scroll and horizontal gestures
+            style={{ touchAction: "pan-y" }} // allow native vertical scroll but let JS handle horizontal swipe
             onPointerDown={onCatalogPointerDown}
             onPointerMove={onCatalogPointerMove}
             onPointerUp={onCatalogPointerUp}
@@ -1167,15 +1167,23 @@ export default function MenuPanel({ isOpen, onClose }) {
                       <div
                         ref={categoryScrollRef}
                         data-category-scroll
-                        className="flex items-center gap-2 overflow-x-auto pb-2 px-1 mt-1.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                        className="flex items-start gap-3 overflow-x-auto py-2 px-2 mt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
                         style={{ WebkitOverflowScrolling: "touch" }}
                       >
                         {categoryButtons.map((category, index) => {
-                          const Icon =
-                            category === "Barchasi"
-                              ? Beef
-                              : getCategoryIcon(category);
                           const isActive = index === activeCategoryIndex;
+                          
+                          let defaultFoodId = 1; // "Barchasi", "Asosiy taom", "Milliy taom" uchun Osh(1)
+                          if (category === "Fast food" || category === "Fast-food") defaultFoodId = 18; // Burger
+                          else if (category === "Sho'rvalar") defaultFoodId = 4; // Sho'rva
+                          else if (category === "Grill") defaultFoodId = 7; // Shashlik
+                          else if (category === "Salatlar") defaultFoodId = 21; // Shakarob
+                          else if (category === "Ichimliklar") defaultFoodId = 27; // Fanta
+                          else if (category === "Shirinliklar") defaultFoodId = 29; // Napoleon
+
+                          const matchedFood = foods.find(f => f.id === defaultFoodId);
+                          const imageUrl = matchedFood ? getMainImage(matchedFood) : FALLBACK_IMAGE;
+
                           return (
                             <button
                               key={category}
@@ -1184,14 +1192,33 @@ export default function MenuPanel({ isOpen, onClose }) {
                               }}
                               type="button"
                               onClick={() => selectCategoryByIndex(index)}
-                              className={`flex shrink-0 cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium backdrop-blur transition-all duration-300 ease-[cubic-bezier(.25,.8,.25,1)] outline-[#1bac4b] will-change-transform ${
-                                isActive
-                                  ? "border-[#1bac4b] bg-[#1bac4b] text-white"
-                                  : "border-black/10 bg-white/85 text-slate-700 hover:bg-[#1bac4b]/20"
-                              }`}
+                              className="group flex flex-col items-center gap-2 shrink-0 cursor-pointer outline-none w-[72px]"
                             >
-                              <Icon className="size-3.5" />
-                              {category}
+                              <div
+                                className={`relative p-[2.5px] rounded-full transition-all duration-300 ${
+                                  isActive
+                                    ? "bg-linear-to-tr from-[#1bac4b] via-emerald-400 to-[#1bac4b] shadow-md scale-[1.03]"
+                                    : "bg-slate-200 hover:bg-slate-300"
+                                }`}
+                              >
+                                <div className="rounded-full bg-white p-[2px]">
+                                  <ImageWithLoader
+                                    src={imageUrl}
+                                    alt={category}
+                                    className="h-[60px] w-[60px] rounded-full object-cover border border-black/5"
+                                  />
+                                </div>
+                              </div>
+                              <span
+                                className={`text-[11px] font-medium leading-[1.1] text-center w-full wrap-break-word transition-colors ${
+                                  isActive
+                                    ? "text-slate-900 font-bold"
+                                    : "text-slate-500 group-hover:text-slate-700"
+                                } line-clamp-2 min-h-[24px]`}
+                                title={category}
+                              >
+                                {category}
+                              </span>
                             </button>
                           );
                         })}
