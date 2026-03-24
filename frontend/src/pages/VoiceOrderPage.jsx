@@ -5,8 +5,10 @@ import MicButton from '../components/MicButton.jsx';
 import OrderItem from '../components/OrderItem.jsx';
 import MenuPanel from '../components/MenuPanel.jsx';
 import { useRecorder } from '../hooks/useRecorder.js';
-import api from '../services/api.js';
+import api, { rmsApi } from '../services/api.js';
 import { useOrderStore } from '../store/useOrderStore.js';
+import { useTableStore } from '../store/useTableStore.js';
+import { useMenuStore } from '../store/useMenuStore.js';
 import { toast } from 'sonner';
 
 const toBase64 = (blob) =>
@@ -25,6 +27,11 @@ export default function VoiceOrderPage() {
   const recorder = useRecorder();
   const startTimeRef = useRef(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { fetchTables } = useTableStore();
+
+  React.useEffect(() => {
+    fetchTables();
+  }, [fetchTables]);
 
   // Swipe detection
   const touchStartX = useRef(0);
@@ -147,38 +154,43 @@ export default function VoiceOrderPage() {
   const handleSend = async () => {
     if (!parsedOrder || parsedOrder.mahsulotlar.length === 0) return;
 
-    // Detect if this is a locally-created (menu) order (uuid) vs a DB-backed voice order
-    const isLocalOrder = !parsedOrder.id;
-
     setState('sending');
 
     try {
-      if (isLocalOrder) {
-        // Sanitize items: keep only backend-expected fields
-        const cleanItems = parsedOrder.mahsulotlar.map(item => ({
-          id: item.id,
-          nomi: item.nomi,
-          miqdor: item.miqdor || 1,
-          jami_narxi: item.jami_narxi || 0,
-          unit_price: item.unit_price || item.narxi || 0,
-          qoshimchalar: item.qoshimchalar || [],
-          tavsif: item.tavsif || '',
-          status: 'yangi',
-        }));
+      const { tables } = useTableStore.getState();
+      const targetTableNumber = Number(parsedOrder.stol) || 1;
+      const table = tables.find(t => t.tableNumber === targetTableNumber);
 
-        // Menu order — insert directly to DB via POST /orders
-        await api.post('/orders', {
-          mahsulotlar: cleanItems,
-          stol: parsedOrder.stol || 1,
-          mijoz: parsedOrder.mijoz || 'Noma\'lum',
-          hisob_kitob: parsedOrder.hisob_kitob,
-          taxminiy_tolov_turi: 'naqd'
-        });
-      } else {
-        // Voice order — update status in DB
-        const orderId = parsedOrder.id;
-        await api.patch(`/orders/${orderId}/status`, { status: 'NEW' });
+      if (!table) {
+        throw new Error(`${targetTableNumber}-stol tizimda topilmadi`);
       }
+
+      const MENU_ITEMS = useMenuStore.getState().flatFoods;
+      const rmsItems = [];
+
+      for (const item of parsedOrder.mahsulotlar) {
+        const found = MENU_ITEMS.find(i => 
+          i.id === item.id || 
+          (i.nomi || '').toLowerCase().trim() === (item.nomi || '').toLowerCase().trim()
+        );
+        
+        if (!found) {
+          throw new Error(`"${item.nomi}" menyudan topilmadi`);
+        }
+
+        rmsItems.push({
+          menuItemId: found.id,
+          quantity: item.miqdor || 1
+        });
+      }
+
+      const payload = {
+        tableId: table.id,
+        items: rmsItems,
+        note: parsedOrder.ogohlantirish || ""
+      };
+
+      await rmsApi.post('/orders', payload);
 
       setState('idle');
       toast.success("Buyurtma muvaffaqiyatli jo'natildi! 🚀");
@@ -203,7 +215,7 @@ export default function VoiceOrderPage() {
       } catch (e) {}
       reset();
     } catch (err) {
-      const message = err?.response?.data?.message ?? 'Xatolik yuz berdi';
+      const message = err?.response?.data?.message || err.message || 'Xatolik yuz berdi';
       setError(message);
       setState('preview');
     }
@@ -225,9 +237,16 @@ export default function VoiceOrderPage() {
           {/* Top fixed Jami section */}
           {hasItems && (
             <div className="absolute top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-zinc-100 shadow-sm">
-              <div className="px-5 py-4 bg-green-50 text-green-900 flex justify-between items-center w-full">
-                <span className="font-medium text-sm text-green-700">Jami (qoralama)</span>
-                <span className="font-bold text-xl">{parsedOrder.hisob_kitob?.umumiy_summa?.toLocaleString() || 0} so'm</span>
+              <div className="px-5 py-3 bg-green-50 text-green-900 flex flex-col gap-1.5 w-full">
+                <div className="flex justify-between items-center w-full">
+                  <span className="font-medium text-sm text-green-700">Xizmat haqi (10%)</span>
+                  <span className="font-semibold text-[15px]">{parsedOrder.hisob_kitob?.xizmat_haqi_summa?.toLocaleString() || 0} so'm</span>
+                </div>
+                <div className="h-px bg-green-200/60 w-full my-0.5"></div>
+                <div className="flex justify-between items-center w-full">
+                  <span className="font-bold text-base text-green-800">Umumiy hisob</span>
+                  <span className="font-bold text-xl">{parsedOrder.hisob_kitob?.umumiy_summa?.toLocaleString() || 0} so'm</span>
+                </div>
               </div>
             </div>
           )}

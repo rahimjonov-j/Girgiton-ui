@@ -1,17 +1,14 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { supabase } from '../services/supabase.js';
 import { logger } from '../utils/logger.js';
 
 const router = Router();
 
+// In-memory mock data array for the routes so the app doesn't crash
+const mockOrdersDb = [];
+
 router.get('/', async (_req, res) => {
-  const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-  if (error) {
-    logger.error({ error }, 'Orders fetch failed');
-    return res.status(500).json({ message: 'Buyurtmalar yuklanmadi' });
-  }
-  return res.json({ orders: data ?? [] });
+  return res.json({ orders: mockOrdersDb });
 });
 
 const generateOrderId = () => `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -40,14 +37,14 @@ router.post('/', async (req, res) => {
       status: 'NEW'
     };
 
-    const { data, error } = await supabase.from('orders').insert(payload).select('*').single();
-    if (error || !data) {
-      logger.error({ error }, 'Order insert failed');
-      return res.status(500).json({ message: 'Buyurtma saqlanmadi' });
-    }
+    // Supabase removed - save to in-memory array for now
+    const mockOrder = { id: payload.buyurtma_id, ...payload };
+    mockOrdersDb.unshift(mockOrder);
 
-    logger.info({ orderId: data.id }, 'Manual order saved');
-    return res.status(201).json({ order: data });
+    broadcast({ type: 'orders_change', payload: { type: 'INSERT', new: mockOrder } });
+
+    logger.info({ orderId: mockOrder.id }, 'Manual order saved (Mock)');
+    return res.status(201).json({ order: mockOrder });
   } catch (err) {
     logger.error({ error: err?.message }, 'POST /orders error');
     return res.status(500).json({ message: err?.message || 'Server xatoligi' });
@@ -66,19 +63,15 @@ router.patch('/:id/status', async (req, res) => {
 
     const completedAt = status === 'COMPLETED' ? new Date().toISOString() : null;
 
-    const result = await supabase
-      .from('orders')
-      .update({ status, completed_at: completedAt })
-      .eq('id', id)
-      .select('*')
-      .single();
-
-    if (result.error || !result.data) {
-      logger.error({ error: result.error }, 'Status update failed');
-      return res.status(500).json({ message: 'Status yangilanmadi' });
+    const orderIndex = mockOrdersDb.findIndex((o) => o.id === id);
+    if (orderIndex === -1) {
+      return res.status(404).json({ message: 'Topilmadi' });
     }
 
-    return res.json({ order: result.data });
+    mockOrdersDb[orderIndex] = { ...mockOrdersDb[orderIndex], status, completed_at: completedAt };
+    broadcast({ type: 'orders_change', payload: { type: 'UPDATE', new: mockOrdersDb[orderIndex] } });
+
+    return res.json({ order: mockOrdersDb[orderIndex] });
   } catch (error) {
     logger.error({ error }, 'Invalid status update');
     return res.status(422).json({ message: "Noto'g'ri status" });
@@ -99,19 +92,7 @@ function broadcast(payload) {
 async function initChannel() {
   if (channelInitialized) return;
   channelInitialized = true;
-
-  channel = supabase
-    .channel('orders-realtime')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'orders' },
-      (payload) => {
-        broadcast({ type: 'orders_change', payload });
-      }
-    )
-    .subscribe((status) => {
-      logger.info({ status }, 'Supabase realtime status');
-    });
+  logger.info('Realtime events initialized (Mock Mode)');
 }
 
 router.get('/stream', async (req, res) => {

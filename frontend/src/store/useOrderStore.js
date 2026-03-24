@@ -1,5 +1,12 @@
 import { create } from 'zustand';
-import { MENU_ITEMS } from '../data/menuData.js';
+import { useMenuStore } from './useMenuStore.js';
+
+const calculateTotals = (items) => {
+  const sub_total = items.reduce((acc, curr) => acc + (curr.jami_narxi || 0), 0);
+  const xizmat_haqi_summa = sub_total * 0.10;
+  const umumiy_summa = sub_total + xizmat_haqi_summa;
+  return { sub_total, xizmat_haqi_summa, umumiy_summa, xizmat_haqi_foiz: 10 };
+};
 
 export const useOrderStore = create((set) => ({
   state: 'idle',
@@ -20,7 +27,7 @@ export const useOrderStore = create((set) => ({
         stol: "1",
         buyurtma_id: crypto.randomUUID().slice(0, 8),
         mahsulotlar: [],
-        hisob_kitob: { umumiy_summa: 0, soliq: 0, jami_tolov: 0 }
+        hisob_kitob: { sub_total: 0, xizmat_haqi_foiz: 10, xizmat_haqi_summa: 0, umumiy_summa: 0 }
       };
     }
     const newItems = [...order.mahsulotlar];
@@ -41,12 +48,11 @@ export const useOrderStore = create((set) => ({
       });
     }
 
-    const newTotal = newItems.reduce((acc, curr) => acc + curr.jami_narxi, 0);
     return { 
       parsedOrder: { 
         ...order, 
         mahsulotlar: newItems,
-        hisob_kitob: { ...order.hisob_kitob, umumiy_summa: newTotal }
+        hisob_kitob: { ...order.hisob_kitob, ...calculateTotals(newItems) }
       } 
     };
   }),
@@ -54,6 +60,7 @@ export const useOrderStore = create((set) => ({
   updateItemName: (id, name) => set((state) => {
     if (!state.parsedOrder) return state;
     
+    const MENU_ITEMS = useMenuStore.getState().flatFoods;
     const foundItem = MENU_ITEMS.find(i => {
       const itemName = (i.nomi || i.name || '');
       return itemName.toLowerCase() === name.toLowerCase().trim();
@@ -75,15 +82,13 @@ export const useOrderStore = create((set) => ({
       return item;
     });
 
-    const newTotal = newItems.reduce((acc, curr) => acc + (curr.jami_narxi || 0), 0);
-
     return { 
       parsedOrder: { 
         ...state.parsedOrder, 
         mahsulotlar: newItems,
         hisob_kitob: {
           ...state.parsedOrder.hisob_kitob,
-          umumiy_summa: newTotal
+          ...calculateTotals(newItems)
         }
       } 
     };
@@ -99,12 +104,11 @@ export const useOrderStore = create((set) => ({
       }
       return item;
     });
-    const newTotal = newItems.reduce((acc, curr) => acc + (curr.jami_narxi || 0), 0);
     return { 
       parsedOrder: { 
         ...state.parsedOrder, 
         mahsulotlar: newItems,
-        hisob_kitob: { ...state.parsedOrder.hisob_kitob, umumiy_summa: newTotal }
+        hisob_kitob: { ...state.parsedOrder.hisob_kitob, ...calculateTotals(newItems) }
       } 
     };
   }),
@@ -112,12 +116,11 @@ export const useOrderStore = create((set) => ({
   removeItem: (id) => set((state) => {
     if (!state.parsedOrder) return state;
     const newItems = state.parsedOrder.mahsulotlar.filter(item => item.id !== id && item.nomi !== id);
-    const newTotal = newItems.reduce((acc, curr) => acc + (curr.jami_narxi || 0), 0);
     
     const newOrder = newItems.length === 0 ? null : { 
       ...state.parsedOrder, 
       mahsulotlar: newItems,
-      hisob_kitob: { ...state.parsedOrder.hisob_kitob, umumiy_summa: newTotal }
+      hisob_kitob: { ...state.parsedOrder.hisob_kitob, ...calculateTotals(newItems) }
     };
     
     return { parsedOrder: newOrder };

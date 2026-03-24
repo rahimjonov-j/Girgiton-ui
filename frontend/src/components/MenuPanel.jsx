@@ -15,7 +15,7 @@ import {
   ChevronRight as ChevronRightIcon,
   Check,
 } from "lucide-react";
-import { MENU_ITEMS as foods, CATEGORIES } from "../data/menuData.js";
+import { useMenuStore } from "../store/useMenuStore.js";
 import { useOrderStore } from "../store/useOrderStore.js";
 
 const FALLBACK_IMAGE = "/img-nf.png";
@@ -94,29 +94,19 @@ function formatPrice(value) {
 }
 
 function getDiscountInfo(food) {
-  const raw = food?.chegirma;
-  if (!raw)
+  if (!food?.hasDiscount) {
     return {
       hasDiscount: false,
-      oldPrice: food.narxi,
-      newPrice: food.narxi,
-      percent: 0,
-    };
-  const parsed = parseFloat(String(raw).replace("%", ""));
-  if (Number.isNaN(parsed) || parsed <= 0) {
-    return {
-      hasDiscount: false,
-      oldPrice: food.narxi,
-      newPrice: food.narxi,
-      percent: 0,
+      oldPrice: food?.narxi || 0,
+      newPrice: food?.narxi || 0,
+      discountLabel: null,
     };
   }
-  const newPrice = Math.max(0, Math.round(food.narxi * (1 - parsed / 100)));
   return {
     hasDiscount: true,
     oldPrice: food.narxi,
-    newPrice,
-    percent: parsed,
+    newPrice: food.finalPrice,
+    discountLabel: food.chegirma,
   };
 }
 
@@ -328,11 +318,11 @@ function FoodRow({
       </div>
 
       {(() => {
-        const { hasDiscount, percent } = getDiscountInfo(food);
+        const { hasDiscount, discountLabel } = getDiscountInfo(food);
         if (!hasDiscount) return null;
         return (
           <div className="pointer-events-none absolute right-3 top-3 z-10 rounded-full bg-rose-50 px-2.5 py-1 text-[12px] font-semibold text-rose-500 shadow-sm">
-            -{percent}%
+            -{discountLabel}
           </div>
         );
       })()}
@@ -449,8 +439,15 @@ function SearchResultsList({ foods, selectedFoods, onToggleSelect }) {
 }
 
 export default function MenuPanel({ isOpen, onClose }) {
+  const { flatFoods: foods, localCategories: CATEGORIES, fetchMenu, startMenuStream, stopMenuStream } = useMenuStore();
   const { parsedOrder, setParsedOrder } = useOrderStore();
   const [selectedFoods, setSelectedFoods] = useState([]);
+
+  useEffect(() => {
+    fetchMenu();
+    startMenuStream();
+    return () => stopMenuStream();
+  }, [fetchMenu, startMenuStream, stopMenuStream]);
 
   const toggleFoodSelection = useCallback((food) => {
     setSelectedFoods((prev) => {
@@ -483,12 +480,19 @@ export default function MenuPanel({ isOpen, onClose }) {
       return acc + itemJami;
     }, 0);
 
+    const sub_total = totalSum;
+    const xizmat_haqi_summa = sub_total * 0.10;
+    const umumiy_summa = sub_total + xizmat_haqi_summa;
+
     setParsedOrder({
       ...parsedOrder,
       mahsulotlar: newItems,
       hisob_kitob: {
         ...parsedOrder?.hisob_kitob,
-        umumiy_summa: totalSum,
+        sub_total,
+        xizmat_haqi_foiz: 10,
+        xizmat_haqi_summa,
+        umumiy_summa,
       },
     });
     setSelectedFoods([]);

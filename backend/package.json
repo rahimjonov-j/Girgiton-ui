@@ -10,13 +10,13 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@supabase/supabase-js": "latest",
     "axios": "latest",
     "cors": "latest",
     "dotenv": "latest",
     "express": "latest",
     "form-data": "latest",
     "morgan": "latest",
+    "openai": "^6.32.0",
     "pino": "latest",
     "pino-pretty": "latest",
     "ws": "latest",
