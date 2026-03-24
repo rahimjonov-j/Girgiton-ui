@@ -16,6 +16,7 @@ const requestSchema = z.object({
 
 const generateOrderId = () => `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
 
+
 router.post('/', async (req, res) => {
   try {
     const { audioBase64, mimeType, text, updateOrderId } = requestSchema.parse(req.body);
@@ -38,7 +39,7 @@ router.post('/', async (req, res) => {
     }
 
     const parsed = parsedOrderSchema.parse(openAiResult);
-    return res.json({ order: parsed, transcription });
+    return res.json({ order: parsed });
   } catch (error) {
     if (error?.statusCode === 429 || error?.message === 'OPENAI_RATE_LIMIT') {
       return res.status(429).json({ message: 'OpenAI limitiga yetildi. Birozdan keyin qayta urinib koring.' });

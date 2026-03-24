@@ -61,6 +61,8 @@ export default function VoiceOrderPage() {
     reset
   } = useOrderStore();
 
+  const [transcriptionText, setTranscriptionText] = useState('');
+
   const voiceOrderMutation = useMutation({
     mutationFn: async (payload) => {
       const { data } = await api.post('/voice-order', payload);

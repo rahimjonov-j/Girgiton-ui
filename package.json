@@ -5,13 +5,12 @@
   "type": "module",
   "workspaces": [
     "frontend",
-    "backend",
-    "kitchen-dashboard"
+    "backend"
   ],
   "scripts": {
-    "dev": "concurrently -n frontend,backend,kitchen -c green,cyan,magenta \"npm run dev -w frontend\" \"npm run dev -w backend\" \"npm run dev -w kitchen-dashboard\"",
-    "build": "npm run build -w frontend && npm run build -w backend && npm run build -w kitchen-dashboard",
-    "lint": "npm run lint -w frontend && npm run lint -w backend && npm run lint -w kitchen-dashboard"
+    "dev": "concurrently -n frontend,backend -c green,cyan \"npm run dev -w frontend\" \"npm run dev -w backend\"",
+    "build": "npm run build -w frontend && npm run build -w backend",
+    "lint": "npm run lint -w frontend && npm run lint -w backend"
   },
   "devDependencies": {
     "concurrently": "latest"

@@ -28,7 +28,7 @@ async function withRetry(fn, retries = 3) {
 }
 
 async function callOpenAI(messages, apiKey) {
-  const model = process.env.OPENAI_MODEL ?? 'gpt-4.1';
+  const model = process.env.OPENAI_MODEL ?? 'gpt-4.1-nano';
 
   const response = await withRetry(async () => {
     try {
@@ -38,7 +38,7 @@ async function callOpenAI(messages, apiKey) {
           model,
           messages,
           temperature: 0.2,
-          max_tokens: 2048,
+          max_tokens: 800,
           response_format: { type: 'json_object' }
         },
         {

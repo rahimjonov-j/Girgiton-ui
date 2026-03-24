@@ -86,14 +86,9 @@ const OrderItem = memo(function OrderItem({ item }) {
           <h3 className="font-bold text-lg text-zinc-900 truncate leading-tight">
             {item.nomi}
           </h3>
-          <p className="text-sm font-semibold text-zinc-500 mt-1">
-            {item.jami_narxi.toLocaleString()} <span className="text-xs font-medium text-zinc-400 mx-1">so'm</span>
+          <p className="text-sm text-zinc-400 mt-0.5">
+            {item.miqdor} {item.birlik}
           </p>
-          {item.qoshimchalar?.length > 0 && (
-            <p className="text-xs text-zinc-400 mt-0.5">
-              +{item.qoshimchalar.map(q => q.nomi || q).join(', ')}
-            </p>
-          )}
         </div>
 
         {/* Right: quantity counter only */}
